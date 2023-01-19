@@ -52,15 +52,27 @@ async function run(){
         }
         })
 
+        app.get("/singlePatient/:id",async(req,res)=>{
+            const id=req.params.id
+            console.log(id)
+            const query={_id:ObjectId(id)}
+            const patients=await patientCollection.findOne(query)
+            console.log(patients,"Apa")
+            res.send(patients)
+        })
+
 
         // dashboard user check-----
 
 
         app.get("/userTest",async(req,res)=>{
             const email=req.query.email
+            // console.log(email)
             const query={email:email}
             const patient=await userCollection.findOne(query)
+            // console.log(patient)
             result= patient?.role === "Patient" ? true: false
+            console.log(result)
             res.send(result)
         })
 
@@ -69,16 +81,20 @@ async function run(){
             const email=req.params.email
             const query={email:email}
             const patients=await patientCollection.find(query).toArray()
+            // console.log(patients)
             res.send(patients)
         })
+     
         app.delete("/patient/:id",async(req,res)=>{
             const email=req.query.email;
             const find={email:email}
             const user=await userCollection.findOne(find)
+            // console.log(user)
             if(user.role === "Professional"){
             const id=req.params.id
             const query={_id:ObjectId(id)}
             const result=await patientCollection.deleteOne(query)
+            // console.log(result)
             res.send(result)
         }else{
             res.status(400).send("Unauthorized")
@@ -88,14 +104,17 @@ async function run(){
             const email=req.query.email;
             const find={email:email}
             const user=await userCollection.findOne(find)
+            // console.log(user)
             if(user.role === "Professional"){
             const id=req.params.id
             const body=req.body
+            // console.log(id,body)
             const query={_id:ObjectId(id)}
             const updateDoc = {
                 $set: body
               };
             const result=await patientCollection.updateOne(query,updateDoc)
+            // console.log(result)
             res.send(result)
         }else{
             res.status(400).send("Unauthorized")
