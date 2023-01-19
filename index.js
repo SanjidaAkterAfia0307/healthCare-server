@@ -21,22 +21,35 @@ async function run(){
         const userCollection = client.db("healthCare").collection("users")
 
         app.post("/patient",async(req,res)=>{
-            const info=req.body;
-            const result=await patientCollection.insertOne(info)
-            console.log(result)
-            res.send(result)
+            const email=req.query.email;
+            const find={email:email}
+            const user=await userCollection.findOne(find)
+            if(user.role === "Professional"){
+
+                const info=req.body;
+                const result=await patientCollection.insertOne(info)
+
+                res.send(result)
+            }else{
+                res.status(400).send("Unauthorized")
+            }
         })
         app.post("/users",async(req,res)=>{
             const info=req.body;
             const result=await userCollection.insertOne(info)
-            console.log(result)
             res.send(result)
         })
         app.get("/patients",async(req,res)=>{
+            const email=req.query.email;
+            const find={email:email}
+            const user=await userCollection.findOne(find)
+            if(user.role === "Professional"){
             const query={}
             const patients=await patientCollection.find(query).toArray()
-            console.log(patients)
             res.send(patients)
+        }else{
+            res.status(400).send("Unauthorized")
+        }
         })
 
 
@@ -45,30 +58,53 @@ async function run(){
 
         app.get("/userTest",async(req,res)=>{
             const email=req.query.email
-            console.log(email)
             const query={email:email}
             const patient=await userCollection.findOne(query)
-            console.log(patient)
             result= patient?.role === "Patient" ? true: false
-            console.log(result)
             res.send(result)
         })
 
 
-        app.get("/patient/:id",async(req,res)=>{
-            const id=req.params.id
-            const query={_id:ObjectId(id)}
-            const patient=await patientCollection.findOne(query)
-            console.log(patient)
-            res.send(patient)
+        app.get("/patient/:email",async(req,res)=>{
+            const email=req.params.email
+            const query={email:email}
+            const patients=await patientCollection.find(query).toArray()
+            res.send(patients)
         })
         app.delete("/patient/:id",async(req,res)=>{
+            const email=req.query.email;
+            const find={email:email}
+            const user=await userCollection.findOne(find)
+            if(user.role === "Professional"){
             const id=req.params.id
             const query={_id:ObjectId(id)}
             const result=await patientCollection.deleteOne(query)
-            console.log(result)
             res.send(result)
+        }else{
+            res.status(400).send("Unauthorized")
+        }
         })
+        app.put("/patient/:id",async(req,res)=>{
+            const email=req.query.email;
+            const find={email:email}
+            const user=await userCollection.findOne(find)
+            if(user.role === "Professional"){
+            const id=req.params.id
+            const body=req.body
+            const query={_id:ObjectId(id)}
+            const updateDoc = {
+                $set: body
+              };
+            const result=await patientCollection.updateOne(query,updateDoc)
+            res.send(result)
+        }else{
+            res.status(400).send("Unauthorized")
+        }
+        })
+
+
+
+
     }finally{
 
     }
